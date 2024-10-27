@@ -4,10 +4,8 @@ import (
 	"os"
 	"testing"
 
-	g "maragu.dev/gomponents"
-	. "maragu.dev/gomponents/components"
-	. "maragu.dev/gomponents/html"
-	"maragu.dev/gomponents/internal/assert"
+	g "github.com/fuguohong1024/gomponents"
+	"github.com/fuguohong1024/gomponents/internal/assert"
 )
 
 func TestHTML5(t *testing.T) {

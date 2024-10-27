@@ -1,3 +1,3 @@
-module "maragu.dev/gomponents"
+module github.com/fuguohong1024/gomponents
 
-go 1.18
+go 1.22.6

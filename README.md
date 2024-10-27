@@ -50,9 +50,9 @@ go get maragu.dev/gomponents
 package main
 
 import (
-	. "maragu.dev/gomponents"
-	. "maragu.dev/gomponents/components"
-	. "maragu.dev/gomponents/html"
+	. "github.com/fuguohong1024/gomponents"
+	. "github.com/fuguohong1024/gomponents/components"
+	. "github.com/fuguohong1024/gomponents/html"
 )
 
 func Navbar(authenticated bool, currentPath string) Node {
