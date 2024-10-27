@@ -1,6 +1,7 @@
-package html_test
+package html
 
 import (
+	"bytes"
 	"fmt"
 	"testing"
 
@@ -32,7 +33,9 @@ func TestBooleanAttributes(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			n := g.El("div", test.Func())
-			assert.Equal(t, fmt.Sprintf(`<div %v></div>`, test.Name), n)
+			b := new(bytes.Buffer)
+			n.Render(b)
+			assert.Equal(t, fmt.Sprintf(`<div %v></div>`, test.Name), b.String())
 		})
 	}
 }
@@ -101,7 +104,9 @@ func TestSimpleAttributes(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			n := g.El("div", test.Func("hat"))
-			assert.Equal(t, fmt.Sprintf(`<div %v="hat"></div>`, test.Name), n)
+			b := new(bytes.Buffer)
+			n.Render(b)
+			assert.Equal(t, fmt.Sprintf(`<div %v="hat"></div>`, test.Name), b.String())
 		})
 	}
 }
@@ -109,16 +114,22 @@ func TestSimpleAttributes(t *testing.T) {
 func TestAria(t *testing.T) {
 	t.Run("returns an attribute which name is prefixed with aria-", func(t *testing.T) {
 		n := Aria("selected", "true")
-		assert.Equal(t, ` aria-selected="true"`, n)
+		b := new(bytes.Buffer)
+		n.Render(b)
+		assert.Equal(t, ` aria-selected="true"`, b.String())
 	})
 }
 
 func TestData(t *testing.T) {
 	t.Run("returns an attribute which name is prefixed with data-", func(t *testing.T) {
 		n := Data("id", "partyhat")
-		assert.Equal(t, ` data-id="partyhat"`, n)
+		b := new(bytes.Buffer)
+		n.Render(b)
+		assert.Equal(t, ` data-id="partyhat"`, b.String())
 
 		n = DataAttr("id", "partyhat")
-		assert.Equal(t, ` data-id="partyhat"`, n)
+		b.Reset()
+		n.Render(b)
+		assert.Equal(t, ` data-id="partyhat"`, b.String())
 	})
 }

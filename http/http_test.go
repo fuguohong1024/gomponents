@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	is "github.com/fuguohong1024/gomponents/internal/assert"
+	"github.com/fuguohong1024/gomponents/internal/assert"
 
 	hxhttp "github.com/fuguohong1024/gomponents/http"
 )
@@ -21,11 +21,11 @@ func TestBoolGetters(t *testing.T) {
 			headers := http.Header{}
 
 			v := fn(headers)
-			is.Equal(t, false, v)
+			assert.Equal(t, false, v)
 
 			headers.Set("HX-"+name, "true")
 			v = fn(headers)
-			is.Equal(t, true, v)
+			assert.Equal(t, true, v)
 		})
 	}
 }
@@ -44,11 +44,11 @@ func TestValueGetters(t *testing.T) {
 			headers := http.Header{}
 
 			v := fn(headers)
-			is.Equal(t, "", v)
+			assert.Equal(t, "", v)
 
 			headers.Set("HX-"+name, "foo")
 			v = fn(headers)
-			is.Equal(t, "foo", v)
+			assert.Equal(t, "foo", v)
 		})
 	}
 }
@@ -56,7 +56,7 @@ func TestValueGetters(t *testing.T) {
 func TestSetRefresh(t *testing.T) {
 	headers := http.Header{}
 	hxhttp.SetRefresh(headers)
-	is.Equal(t, "true", headers.Get("HX-Refresh"))
+	assert.Equal(t, "true", headers.Get("HX-Refresh"))
 }
 
 func TestSetters(t *testing.T) {
@@ -76,7 +76,7 @@ func TestSetters(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			headers := http.Header{}
 			fn(headers, "foo")
-			is.Equal(t, "foo", headers.Get("HX-"+name))
+			assert.Equal(t, "foo", headers.Get("HX-"+name))
 		})
 	}
 }

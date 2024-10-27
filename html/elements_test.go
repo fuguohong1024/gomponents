@@ -1,7 +1,7 @@
-package html_test
+package html
 
 import (
-	"errors"
+	"bytes"
 	"fmt"
 	"testing"
 
@@ -9,20 +9,11 @@ import (
 	"github.com/fuguohong1024/gomponents/internal/assert"
 )
 
-type erroringWriter struct{}
-
-func (w *erroringWriter) Write(p []byte) (n int, err error) {
-	return 0, errors.New("don't want to write")
-}
-
 func TestDoctype(t *testing.T) {
 	t.Run("returns doctype and children", func(t *testing.T) {
-		assert.Equal(t, `<!doctype html><html></html>`, Doctype(g.El("html")))
-	})
-
-	t.Run("errors on write error in Render", func(t *testing.T) {
-		err := Doctype(g.El("html")).Render(&erroringWriter{})
-		assert.Error(t, err)
+		b := new(bytes.Buffer)
+		Doctype(g.El("html")).Render(b)
+		assert.Equal(t, `<!doctype html><html></html>`, b.String())
 	})
 }
 
@@ -131,7 +122,9 @@ func TestSimpleElements(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			n := test.Func(g.Attr("id", "hat"))
-			assert.Equal(t, fmt.Sprintf(`<%v id="hat"></%v>`, test.Name, test.Name), n)
+			b := new(bytes.Buffer)
+			n.Render(b)
+			assert.Equal(t, fmt.Sprintf(`<%v id="hat"></%v>`, test.Name, test.Name), b.String())
 		})
 	}
 }
@@ -159,7 +152,9 @@ func TestSimpleVoidKindElements(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			n := test.Func(g.Attr("id", "hat"))
-			assert.Equal(t, fmt.Sprintf(`<%v id="hat">`, test.Name), n)
+			b := new(bytes.Buffer)
+			n.Render(b)
+			assert.Equal(t, fmt.Sprintf(`<%v id="hat">`, test.Name), b.String())
 		})
 	}
 }

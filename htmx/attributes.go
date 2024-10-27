@@ -3,9 +3,8 @@
 package htmx
 
 import (
-	"io"
-
 	g "github.com/fuguohong1024/gomponents"
+	"io"
 )
 
 // Boost to add or remove progressive enhancement for links and forms.

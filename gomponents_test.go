@@ -1,6 +1,7 @@
 package gomponents_test
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -27,12 +28,16 @@ func TestNodeFunc(t *testing.T) {
 func TestAttr(t *testing.T) {
 	t.Run("renders just the local name with one argument", func(t *testing.T) {
 		a := g.Attr("required")
-		assert.Equal(t, " required", a)
+		b := new(bytes.Buffer)
+		a.Render(b)
+		assert.Equal(t, " required", b.String())
 	})
 
 	t.Run("renders the name and value when given two arguments", func(t *testing.T) {
 		a := g.Attr("id", "hat")
-		assert.Equal(t, ` id="hat"`, a)
+		b := new(bytes.Buffer)
+		a.Render(b)
+		assert.Equal(t, ` id="hat"`, b.String())
 	})
 
 	t.Run("panics with more than two arguments", func(t *testing.T) {
@@ -54,7 +59,9 @@ func TestAttr(t *testing.T) {
 
 	t.Run("escapes attribute values", func(t *testing.T) {
 		a := g.Attr(`id`, `hat"><script`)
-		assert.Equal(t, ` id="hat&#34;&gt;&lt;script"`, a)
+		b := new(bytes.Buffer)
+		a.Render(b)
+		assert.Equal(t, ` id="hat&#34;&gt;&lt;script"`, b.String())
 	})
 }
 
@@ -100,49 +107,61 @@ func (o outsider) Render(w io.Writer) error {
 func TestEl(t *testing.T) {
 	t.Run("renders an empty element if no children given", func(t *testing.T) {
 		e := g.El("div")
-		assert.Equal(t, "<div></div>", e)
+		b := new(bytes.Buffer)
+		e.Render(b)
+		assert.Equal(t, "<div></div>", b.String())
 	})
 
 	t.Run("renders an empty element without closing tag if it's a void kind element", func(t *testing.T) {
 		e := g.El("hr")
-		assert.Equal(t, "<hr>", e)
+		b := new(bytes.Buffer)
+		e.Render(b)
+		assert.Equal(t, "<hr>", b.String())
 
 		e = g.El("br")
-		assert.Equal(t, "<br>", e)
+		b.Reset()
+		e.Render(b)
+		assert.Equal(t, "<br>", b.String())
 
 		e = g.El("img")
-		assert.Equal(t, "<img>", e)
+		b.Reset()
+		e.Render(b)
+		assert.Equal(t, "<img>", b.String())
 	})
 
 	t.Run("renders an empty element if only attributes given as children", func(t *testing.T) {
 		e := g.El("div", g.Attr("class", "hat"))
-		assert.Equal(t, `<div class="hat"></div>`, e)
+		b := new(bytes.Buffer)
+		e.Render(b)
+		assert.Equal(t, `<div class="hat"></div>`, b.String())
 	})
 
 	t.Run("renders an element, attributes, and element children", func(t *testing.T) {
 		e := g.El("div", g.Attr("class", "hat"), g.El("br"))
-		assert.Equal(t, `<div class="hat"><br></div>`, e)
+		b := new(bytes.Buffer)
+		e.Render(b)
+		assert.Equal(t, `<div class="hat"><br></div>`, b.String())
 	})
 
 	t.Run("renders attributes at the correct place regardless of placement in parameter list", func(t *testing.T) {
 		e := g.El("div", g.El("br"), g.Attr("class", "hat"))
-		assert.Equal(t, `<div class="hat"><br></div>`, e)
+		b := new(bytes.Buffer)
+		e.Render(b)
+		assert.Equal(t, `<div class="hat"><br></div>`, b.String())
 	})
 
 	t.Run("renders outside if node does not implement nodeTypeDescriber", func(t *testing.T) {
 		e := g.El("div", outsider{})
-		assert.Equal(t, `<div>outsider</div>`, e)
+		b := new(bytes.Buffer)
+		e.Render(b)
+		assert.Equal(t, `<div>outsider</div>`, b.String())
 	})
 
 	t.Run("does not fail on nil node", func(t *testing.T) {
 		e := g.El("div", nil, g.El("br"), nil, g.El("br"))
-		assert.Equal(t, `<div><br><br></div>`, e)
-	})
-
-	t.Run("returns render error on cannot write", func(t *testing.T) {
-		e := g.El("div")
-		err := e.Render(&erroringWriter{})
-		assert.Error(t, err)
+		b := new(bytes.Buffer)
+		e.Render(b)
+		assert.Equal(t, `<div><br><br></div>`, b.String())
 	})
 }
 
@@ -170,7 +189,9 @@ func (w *erroringWriter) Write(p []byte) (n int, err error) {
 func TestText(t *testing.T) {
 	t.Run("renders escaped text", func(t *testing.T) {
 		e := g.Text("<div>")
-		assert.Equal(t, "&lt;div&gt;", e)
+		b := new(bytes.Buffer)
+		e.Render(b)
+		assert.Equal(t, "&lt;div&gt;", b.String())
 	})
 }
 
@@ -183,7 +204,9 @@ func ExampleText() {
 func TestTextf(t *testing.T) {
 	t.Run("renders interpolated and escaped text", func(t *testing.T) {
 		e := g.Textf("<%v>", "div")
-		assert.Equal(t, "&lt;div&gt;", e)
+		b := new(bytes.Buffer)
+		e.Render(b)
+		assert.Equal(t, "&lt;div&gt;", b.String())
 	})
 }
 
@@ -196,7 +219,9 @@ func ExampleTextf() {
 func TestRaw(t *testing.T) {
 	t.Run("renders raw text", func(t *testing.T) {
 		e := g.Raw("<div>")
-		assert.Equal(t, "<div>", e)
+		b := new(bytes.Buffer)
+		e.Render(b)
+		assert.Equal(t, "<div>", b.String())
 	})
 }
 
@@ -211,7 +236,9 @@ func ExampleRaw() {
 func TestRawf(t *testing.T) {
 	t.Run("renders interpolated and raw text", func(t *testing.T) {
 		e := g.Rawf("<%v>", "div")
-		assert.Equal(t, "<div>", e)
+		b := new(bytes.Buffer)
+		e.Render(b)
+		assert.Equal(t, "<div>", b.String())
 	})
 }
 
@@ -231,14 +258,22 @@ func TestMap(t *testing.T) {
 		})
 
 		list := g.El("ul", lis...)
+		b := new(bytes.Buffer)
+		list.Render(b)
 
-		assert.Equal(t, `<ul><li>hat</li><li>partyhat</li><li>turtlehat</li></ul>`, list)
+		assert.Equal(t, `<ul><li>hat</li><li>partyhat</li><li>turtlehat</li></ul>`, b.String())
 		if len(lis) != 3 {
 			t.FailNow()
 		}
-		assert.Equal(t, `<li>hat</li>`, lis[0])
-		assert.Equal(t, `<li>partyhat</li>`, lis[1])
-		assert.Equal(t, `<li>turtlehat</li>`, lis[2])
+		b.Reset()
+		lis[0].Render(b)
+		assert.Equal(t, `<li>hat</li>`, b.String())
+		b.Reset()
+		lis[1].Render(b)
+		assert.Equal(t, `<li>partyhat</li>`, b.String())
+		b.Reset()
+		lis[2].Render(b)
+		assert.Equal(t, `<li>turtlehat</li>`, b.String())
 	})
 }
 
@@ -267,19 +302,25 @@ func TestGroup(t *testing.T) {
 	t.Run("groups multiple nodes into one", func(t *testing.T) {
 		children := []g.Node{g.El("br", g.Attr("id", "hat")), g.El("hr")}
 		e := g.El("div", g.Attr("class", "foo"), g.El("img"), g.Group(children))
-		assert.Equal(t, `<div class="foo"><img><br id="hat"><hr></div>`, e)
+		b := new(bytes.Buffer)
+		e.Render(b)
+		assert.Equal(t, `<div class="foo"><img><br id="hat"><hr></div>`, b.String())
 	})
 
 	t.Run("ignores attributes at the first level", func(t *testing.T) {
 		children := []g.Node{g.Attr("class", "hat"), g.El("div"), g.El("span")}
 		e := g.Group(children)
-		assert.Equal(t, "<div></div><span></span>", e)
+		b := new(bytes.Buffer)
+		e.Render(b)
+		assert.Equal(t, "<div></div><span></span>", b.String())
 	})
 
 	t.Run("does not ignore attributes at the second level and below", func(t *testing.T) {
 		children := []g.Node{g.El("div", g.Attr("class", "hat"), g.El("hr", g.Attr("id", "partyhat"))), g.El("span")}
 		e := g.Group(children)
-		assert.Equal(t, `<div class="hat"><hr id="partyhat"></div><span></span>`, e)
+		b := new(bytes.Buffer)
+		e.Render(b)
+		assert.Equal(t, `<div class="hat"><hr id="partyhat"></div><span></span>`, b.String())
 	})
 
 	t.Run("implements fmt.Stringer", func(t *testing.T) {
@@ -292,9 +333,16 @@ func TestGroup(t *testing.T) {
 
 	t.Run("can be used like a regular slice", func(t *testing.T) {
 		e := g.Group{g.El("div"), g.El("span")}
-		assert.Equal(t, "<div></div><span></span>", e)
-		assert.Equal(t, "<div></div>", e[0])
-		assert.Equal(t, "<span></span>", e[1])
+		b := new(bytes.Buffer)
+		e.Render(b)
+		assert.Equal(t, "<div></div><span></span>", b.String())
+
+		b.Reset()
+		e[0].Render(b)
+		assert.Equal(t, "<div></div>", b.String())
+		b.Reset()
+		e[1].Render(b)
+		assert.Equal(t, "<span></span>", b.String())
 	})
 }
 
@@ -314,12 +362,16 @@ func ExampleGroup_slice() {
 func TestIf(t *testing.T) {
 	t.Run("returns node if condition is true", func(t *testing.T) {
 		n := g.El("div", g.If(true, g.El("span")))
-		assert.Equal(t, "<div><span></span></div>", n)
+		b := new(bytes.Buffer)
+		n.Render(b)
+		assert.Equal(t, "<div><span></span></div>", b.String())
 	})
 
 	t.Run("returns nil if condition is false", func(t *testing.T) {
 		n := g.El("div", g.If(false, g.El("span")))
-		assert.Equal(t, "<div></div>", n)
+		b := new(bytes.Buffer)
+		n.Render(b)
+		assert.Equal(t, "<div></div>", b.String())
 	})
 }
 
@@ -340,14 +392,18 @@ func TestIff(t *testing.T) {
 		n := g.El("div", g.Iff(true, func() g.Node {
 			return g.El("span")
 		}))
-		assert.Equal(t, "<div><span></span></div>", n)
+		b := new(bytes.Buffer)
+		n.Render(b)
+		assert.Equal(t, "<div><span></span></div>", b.String())
 	})
 
 	t.Run("returns nil if condition is false", func(t *testing.T) {
 		n := g.El("div", g.Iff(false, func() g.Node {
 			return g.El("span")
 		}))
-		assert.Equal(t, "<div></div>", n)
+		b := new(bytes.Buffer)
+		n.Render(b)
+		assert.Equal(t, "<div></div>", b.String())
 	})
 }
 

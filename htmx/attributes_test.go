@@ -1,6 +1,7 @@
 package htmx_test
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"testing"
@@ -51,7 +52,9 @@ func TestAttributes(t *testing.T) {
 	for name, fn := range cases {
 		t.Run(fmt.Sprintf(`should output hx-%v="hat"`, name), func(t *testing.T) {
 			n := g.El("div", fn("hat"))
-			assert.Equal(t, fmt.Sprintf(`<div hx-%v="hat"></div>`, name), n)
+			b := new(bytes.Buffer)
+			n.Render(b)
+			assert.Equal(t, fmt.Sprintf(`<div hx-%v="hat"></div>`, name), b.String())
 		})
 	}
 }
@@ -65,11 +68,15 @@ func ExampleGet() {
 func TestOn(t *testing.T) {
 	t.Run(`should output hx-on:click="alert('hat')"`, func(t *testing.T) {
 		n := g.El("div", hx.On("click", "alert('hat')"))
-		assert.Equal(t, `<div hx-on:click="alert('hat')"></div>`, n)
+		b := new(bytes.Buffer)
+		n.Render(b)
+		assert.Equal(t, `<div hx-on:click="alert('hat')"></div>`, b.String())
 	})
 
 	t.Run(`should output hx-on::before-request="alert('hat')"`, func(t *testing.T) {
 		n := g.El("div", hx.On(":before-request", "alert('hat')"))
-		assert.Equal(t, `<div hx-on::before-request="alert('hat')"></div>`, n)
+		b := new(bytes.Buffer)
+		n.Render(b)
+		assert.Equal(t, `<div hx-on::before-request="alert('hat')"></div>`, b.String())
 	})
 }

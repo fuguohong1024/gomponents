@@ -1,10 +1,12 @@
-package components_test
+package components
 
 import (
+	"bytes"
 	"os"
 	"testing"
 
 	g "github.com/fuguohong1024/gomponents"
+	. "github.com/fuguohong1024/gomponents/html"
 	"github.com/fuguohong1024/gomponents/internal/assert"
 )
 
@@ -18,7 +20,9 @@ func TestHTML5(t *testing.T) {
 			Body:        []g.Node{Div()},
 		})
 
-		assert.Equal(t, `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Hat</title><meta name="description" content="Love hats."><link rel="stylesheet" href="/hat.css"></head><body><div></div></body></html>`, e)
+		b := new(bytes.Buffer)
+		e.Render(b)
+		assert.Equal(t, `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Hat</title><meta name="description" content="Love hats."><link rel="stylesheet" href="/hat.css"></head><body><div></div></body></html>`, b.String())
 	})
 
 	t.Run("returns no language, description, and extra head/body elements if empty", func(t *testing.T) {
@@ -26,23 +30,29 @@ func TestHTML5(t *testing.T) {
 			Title: "Hat",
 		})
 
-		assert.Equal(t, `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Hat</title></head><body></body></html>`, e)
+		b := new(bytes.Buffer)
+		e.Render(b)
+		assert.Equal(t, `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Hat</title></head><body></body></html>`, b.String())
 	})
 }
 
 func TestClasses(t *testing.T) {
 	t.Run("given a map, returns sorted keys from the map with value true", func(t *testing.T) {
-		assert.Equal(t, ` class="boheme-hat hat partyhat"`, Classes{
+		b := new(bytes.Buffer)
+		Classes{
 			"boheme-hat": true,
 			"hat":        true,
 			"partyhat":   true,
 			"turtlehat":  false,
-		})
+		}.Render(b)
+		assert.Equal(t, ` class="boheme-hat hat partyhat"`, b.String())
 	})
 
 	t.Run("renders as attribute in an element", func(t *testing.T) {
 		e := g.El("div", Classes{"hat": true})
-		assert.Equal(t, `<div class="hat"></div>`, e)
+		b := new(bytes.Buffer)
+		e.Render(b)
+		assert.Equal(t, `<div class="hat"></div>`, b.String())
 	})
 
 	t.Run("also works with fmt", func(t *testing.T) {
